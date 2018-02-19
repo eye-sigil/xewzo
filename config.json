@@ -1,0 +1,19 @@
+{
+  "VERSION": "0.1",
+  "DESCRIPTION": "Time to heckin' do a lot of rpg",
+  "MAINTENANCE": false,
+  "BOT_TOKEN": "MTgzNjE1OTM1OTU1ODYxNTA0.DVEWxQ.qBETVGFJE650F2L6c5zyy7FNkIg",
+  "BOT_PREFIX": ["rpg!", "rpg: ", "yoshi!"],
+  "OWNERS": ["97788939196182528"],
+  "BLOCKED": ["97138137679028224"],
+  "MOD_ROLES": ["361910282307764227"],
+  "HELPER_ROLES": ["400882287169896451"],
+  "STAFF_CHANNEL": "400887781553078272",
+  "RETHINKDB": {
+	  "DB": "rice-rpg",
+	  "USERNAME": "admin",
+	  "PASSWORD": "",
+	  "HOST": "localhost",
+    "PORT": 28015
+  }
+}
