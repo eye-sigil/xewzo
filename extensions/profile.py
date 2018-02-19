@@ -2,7 +2,6 @@ from discord.ext import commands
 import discord
 import addict
 import rethinkdb as r
-from typing import Optional
 
 
 class Profile:
