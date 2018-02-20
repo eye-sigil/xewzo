@@ -241,7 +241,6 @@ class Utility:
 
             history[cleaned] = fmt
 
-            print("got this far as well")
             if len(cleaned) > 800:
                 cleaned = "<Too big to be printed>"
 

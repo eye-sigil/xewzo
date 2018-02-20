@@ -4,6 +4,8 @@
 # (c) 2017-2018 ry00001
 
 import rethinkdb as r
+import discord
+import addict
 
 
 def check_setting(conn, g, setting):
@@ -27,3 +29,11 @@ def get_settings(conn, g):
     settings = list(r.table('settings').filter(
         lambda a: a['guild'] == str(g.id)).run(conn))[0]
     return settings
+
+
+def add_money(conn, user: discord.User, amount: int=10) -> int:
+    cursor = r.table('profiles') \
+              .filter({'user': user.id}) \
+              .update({'money': r.row['money'] + amount}) \
+              .run(conn)
+    return cursor.next()['money']

@@ -48,8 +48,8 @@ class Fun:
 
     @commands.command()
     async def cat(self, ctx):
-        with ctx.channel.typing():
-            with aiohttp.ClientSession() as session:
+        async with ctx.channel.typing():
+            async with aiohttp.ClientSession() as session:
                 async with session.get("http://random.cat/meow") as r:
                     r = await r.json()
                     url = r["file"]
@@ -61,7 +61,7 @@ class Fun:
     @commands.command()
     @commands.cooldown(10, 1, commands.BucketType.user)
     async def animalfact(self, ctx, _type: str):
-        with ctx.channel.typing():
+        async with ctx.channel.typing():
             sesh = aiohttp.ClientSession()
             types = []
             async with sesh.get("http://fact.birb.pw/api/v1/endpoints") as r:
@@ -121,15 +121,6 @@ class Fun:
         if finished == correctlist:
             correctstr = "All of them! ^.^"
         await ctx.send(f"```\nOutput: {finishedstr}\nCorrect: {correctstr}```")
-
-    @commands.command(description="Nouns.")
-    async def botgen(self, ctx):
-        """Get your new bot name."""
-        with open("nouns.txt") as lol:
-            nouns = lol.read().split('\n')
-
-        await ctx.send(
-            f'Your new bot name is `Discord {random.choice(nouns).title()}`')
 
     @commands.command(description='Set the bot\'s nick to something.')
     async def bnick(self, ctx, *, nick: str=None):

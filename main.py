@@ -31,8 +31,9 @@ class Bot(commands.Bot):
             self.prefix = self.config.get('BOT_PREFIX')
             self.version = self.config.get('VERSION')
             self.maintenance = self.config.get('MAINTENANCE')
+        self.remove_command("help")
         self.rdb = self.config['RETHINKDB']['DB']
-        self.rtables = ["settings", "profiles", "items"]
+        self.rtables = ["settings", "profiles", "items", "badges", "features"]
         self.init_rethinkdb()
         print('Initialization complete.\n\n')
 
