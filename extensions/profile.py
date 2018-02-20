@@ -67,7 +67,6 @@ class Profile:
 
             await ctx.send(content, embed=embed)
 
-    @commands.command
     @profile.command(aliases=['new', 'init', 'start', 'initialize', 'c'])
     async def create(self, ctx, bio=None):
         """Creates a profile for a user"""
@@ -103,7 +102,6 @@ class Profile:
                     f"Profile created! View it with "
                     f"`{self.bot.prefix[0]}profile`.")
 
-    @commands.command()
     @profile.command()
     async def reset(self, ctx):
         """Resets a user profile."""
@@ -141,6 +139,14 @@ class Profile:
                 f"**{ctx.author.display_name}'s** profile reset (´；д；`)")
         else:
             await ctx.send("<:rpgxmark:415322326930817027> Reset cancelled.")
+
+    @commands.command(name="create", aliases=["start"])
+    async def create_alias(self, ctx, bio=None):
+        ctx.invoke(create, bio)
+
+    @commands.command(name="reset", aliases=["start"])
+    async def reset_alias(self, ctx):
+        ctx.invoke(reset)
 
 
 def setup(bot):
