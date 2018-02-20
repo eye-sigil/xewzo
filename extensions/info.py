@@ -130,7 +130,7 @@ class Info:
                 name='Permissions', value=permissions_str, inline=False)
         await ctx.send(embed=e)
 
-    @commands.command(name='user', aliases=['person', 'account', 'member'])
+    @commands.command()
     async def user(self, ctx, *, user: discord.Member=None):
         """Provides info on a user."""
         if isinstance(ctx.channel, discord.abc.PrivateChannel):

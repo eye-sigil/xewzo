@@ -142,11 +142,11 @@ class Profile:
 
     @commands.command(name="create", aliases=["start"])
     async def create_alias(self, ctx, bio=None):
-        ctx.invoke(create, bio)
+        ctx.invoke(profile.get_command("create"), bio)
 
     @commands.command(name="reset", aliases=["start"])
     async def reset_alias(self, ctx):
-        ctx.invoke(reset)
+        ctx.invoke(profile.get_command("create"))
 
 
 def setup(bot):
