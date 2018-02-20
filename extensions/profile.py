@@ -107,7 +107,7 @@ class Profile:
         except TimeoutError:
             await ctx.send("Timed out. Reset cancelled.")
 
-        if confirm.content == passcode:
+        if confirm.content == str(passcode):
             async with ctx.channel.typing():
                 new_values = {
                     'level': 1,
@@ -116,7 +116,7 @@ class Profile:
                     'items': [],
                     'badges': []
                 }
-                r.table('profile') \
+                r.table('profiles') \
                  .get_all(str(ctx.author.id), index='user') \
                  .update(new_values) \
                  .run(self.conn)
