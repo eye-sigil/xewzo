@@ -67,8 +67,9 @@ class Profile:
 
             await ctx.send(content, embed=embed)
 
+    @commands.command
     @profile.command(aliases=['new', 'init', 'start', 'initialize', 'c'])
-    async def _create(self, ctx, bio=None):
+    async def create(self, ctx, bio=None):
         """Creates a profile for a user"""
         exists = r \
             .table('profiles') \
@@ -102,8 +103,9 @@ class Profile:
                     f"Profile created! View it with "
                     f"`{self.bot.prefix[0]}profile`.")
 
+    @commands.command()
     @profile.command()
-    async def _reset(self, ctx):
+    async def reset(self, ctx):
         """Resets a user profile."""
         passcode = ''.join(random.sample("0123456789", 4))
         await ctx.send(

@@ -5,7 +5,6 @@
 
 import rethinkdb as r
 import discord
-import addict
 
 
 def check_setting(conn, g, setting):

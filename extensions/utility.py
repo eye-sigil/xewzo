@@ -526,11 +526,17 @@ class Utility:
                 bools = state in ['on', 'true']
 
         if bools == True:
-            prompt = await ctx.send('```Are you sure you want to do this? This will make the bot stop responding to anyone but you!\n\n[y]: Enter Maintenance mode\n[n]: Exit prompt```')
-            poll = await self.bot.wait_for('message', check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
+            prompt = await ctx.send(
+                "```Are you sure you want to do this?"
+                "This will make the bot stop responding to anyone but you!\n\n"
+                "[y]: Enter Maintenance mode\n[n]: Exit prompt```")
+            poll = await self.bot.wait_for(
+                'message', check=lambda m: (
+                    m.author == ctx.author and m.channel == ctx.channel)
             if poll.content == 'y':
                 await prompt.delete()
-                await self.bot.change_presence(status=discord.Status.dnd, game=None)
+                await self.bot.change_presence(
+                    status=discord.Status.dnd, game=None)
                 self.bot.maintenance = True
                 await ctx.send(':white_check_mark: Bot in maintenance mode.')
                 return
@@ -597,11 +603,13 @@ class Utility:
         if len(unit_conversions) == 2:
             e.title = 'Unit Conversion'
 
-            # the <input> contains our values, first value = second value essentially.
-            # these <input> also have siblings with <select> and <option selected=1>
+            # the <input> contains our values, first value = second value.
+            # these <input> also have siblings:
+            #   <select>
+            #   <option selected=1>
             # that denote what units we're using
 
-            # We will get 2 <option selected="1"> nodes by traversing the parent
+            # We will get 2 <option selected="1"> nodes by traversing parent
             # The first unit being converted (e.g. Miles)
             # The second unit being converted (e.g. Feet)
 
@@ -615,7 +623,8 @@ class Utility:
                 second_unit = xpath(second_node)[0]
                 second_value = float(second_node.get('value'))
                 e.description = ' '.join(
-                    (str(first_value), first_unit, '=', str(second_value), second_unit))
+                    (str(first_value), first_unit, '=',
+                     str(second_value), second_unit))
             except Exception:
                 return None
             else:
@@ -641,7 +650,8 @@ class Utility:
                 # The parent of the nodes have a <input class='vk_gy vk_sh
                 # ccw_data' value=...>
                 xpath = etree.XPath(
-                    "parent::td/parent::tr/td/input[@class='vk_gy vk_sh ccw_data']")
+                    "parent::td/parent::tr/td/input"
+                    "[@class='vk_gy vk_sh ccw_data']")
                 try:
                     first_value = float(xpath(first_node)[0].get('value'))
                     second_value = float(xpath(second_node)[0].get('value'))
@@ -667,7 +677,8 @@ class Utility:
             try:
                 e.title = ''.join(info.itertext()).strip()
                 actual_information = info.xpath(
-                    "parent::div/parent::div//div[@class='_XWk' or contains(@class, 'kpd-ans')]")[0]
+                    "parent::div/parent::div//div[@class='_XWk' "
+                    "or contains(@class, 'kpd-ans')]")[0]
                 e.description = ''.join(actual_information.itertext()).strip()
             except Exception:
                 return None
