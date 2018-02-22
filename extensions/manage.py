@@ -13,6 +13,7 @@ class Manage:
         self.conn = bot.conn
 
     # Utility Methods
+
     def add(self, contents: dict, name: str, table: str) -> str:
         """Adds item to a table."""
         cursor = list(r.table(table)
@@ -33,12 +34,12 @@ class Manage:
     def get(self, name: str, table: str) -> Optional[addict.Dict]:
         """Gets items from a table."""
         try:
-            badge = r \
+            thing = r \
                 .table(table) \
                 .get_all(name, index='name') \
                 .run(self.conn) \
                 .next()
-            return addict.Dict(badge)
+            return addict.Dict(thing)
         except r.ReqlCursorEmpty:
             return None
 
@@ -49,6 +50,7 @@ class Manage:
         return denied, approved
 
     # Badge Commands
+
     @commands.group(invoke_without_subcommand=True)
     async def badge(self, ctx):
         """Provides info on and manages badge."""
@@ -94,7 +96,75 @@ class Manage:
         async with ctx.channel.typing():
             await ctx.send(self.add(contents, badge.name, 'badges'))
 
+    @badge.command(name='give')
+    @permissions.moderator()
+    async def _badgegive(self, ctx, user: discord.Member, name: str):
+        """Gives a badge to a player."""
+
+        try:
+            r.table('badges') \
+             .get_all(name, index='name') \
+             .run(self.conn) \
+             .next()
+        except r.ReqlCursorEmpty:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"Badge `{name}` not found... **:/**")
+
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'badges': r.row['badges'].append(name)}) \
+         .run(self.conn)
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134>"
+            f"`{name}` added to **{user.display_name}**~")
+
+    @badge.command(name='take', aliases=['revoke'])
+    @permissions.moderator()
+    async def _badgetake(self, ctx, user: discord.Member, name: str):
+        """Takes a badge from a player."""
+
+        try:
+            r.table('badges') \
+             .get_all(name, index='name') \
+             .run(self.conn) \
+             .next()
+        except r.ReqlCursorEmpty:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"Badge `{name}` not found... **:/**")
+
+        shelf = r \
+            .table('profiles') \
+            .get_all(str(user.id), index='user') \
+            .get_field('badges') \
+            .run(self.conn) \
+            .next()
+
+        if name not in shelf:  # Already gone!
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"**{user.display_name}** doesn't have `{name}`... **:/**")
+            return
+        shelf.remove(name)
+
+        r.table('profiles') \
+            .get_all(str(user.id), index='user') \
+            .update({'badges': shelf}) \
+            .run(self.conn)
+
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134>"
+            f"`{name}` removed from **{user.display_name}** **>:)**")
+
+    @commands.command(aliases=['award'])
+    @permissions.moderator()
+    async def reward(self, ctx, user: discord.Member, name: str):
+        """Lets RPG MODs reward users with badges."""
+        await ctx.invoke(self.badge.get_command("give"))
+
     # Item Commands
+
     @commands.group(invoke_without_subcommand=True)
     async def item(self, ctx):
         """Provides info on and manages item."""
@@ -142,9 +212,70 @@ class Manage:
         async with ctx.channel.typing():
             await ctx.send(self.add(contents, item.name, 'items'))
 
-            # Funpack Commands
+    @item.command(name='give')
+    @permissions.moderator()
+    async def _itemgive(self, ctx, user: discord.Member, name: str):
+        """Gives an item to a player."""
+
+        try:
+            r.table('items') \
+             .get_all(name, index='name') \
+             .run(self.conn) \
+             .next()
+        except r.ReqlCursorEmpty:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"Item `{name}` not found... **:/**")
+
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'inventory': r.row['inventory'].append(name)}) \
+         .run(self.conn)
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134>"
+            f"`{name}` added to **{user.display_name}**~")
+
+    @item.command(name='take', aliases=['revoke'])
+    @permissions.moderator()
+    async def _itemtake(self, ctx, user: discord.Member, name: str):
+        """Takes an item from a player."""
+
+        try:
+            r.table('items') \
+             .get_all(name, index='name') \
+             .run(self.conn) \
+             .next()
+        except r.ReqlCursorEmpty:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"Item `{name}` not found... **:/**")
+
+        inventory = r \
+            .table('profiles') \
+            .get_all(str(user.id), index='user') \
+            .get_field('inventory') \
+            .run(self.conn) \
+            .next()
+        if name not in inventory:  # Already gone!
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027> "
+                f"**{user.display_name}** doesn't have `{name}`... **:/**")
+            return
+        inventory.remove(name)
+
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'inventory': inventory}) \
+         .run(self.conn)
+
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134>"
+            f"`{name}` removed from **{user.display_name}** **>:)**")
+
+    # Funpack Commands
+
     @commands.group(name='funpack', invoke_without_subcommand=True)
-    async def funpack_cmd(self, ctx):
+    async def funpack(self, ctx):
         """Provides info on and manages funpack."""
         ctx.invoke(self._funpackinfo)  # No arguments
 
@@ -192,6 +323,8 @@ class Manage:
             }
 
             await ctx.send(message + self.add(contents, funpack, 'funpacks'))
+
+    # Bank Commands
 
     @commands.group()
     @permissions.moderator()
@@ -248,6 +381,12 @@ class Manage:
         await ctx.send(
             f"<:rpgcheckmark:415322326738010134> "
             f"`{feature}` given to **{user.display_name}**~")
+
+    @commands.command()
+    @permissions.moderator()
+    async def xp(self, user: discord.Member, value: int):
+        """Gives xp to a user."""
+        
 
 
 def setup(bot):

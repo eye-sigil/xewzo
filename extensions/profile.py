@@ -56,7 +56,7 @@ class Profile:
                 if contents.badges else "Nothin' but a dusty shelf...",
                 inline=False)
             embed.add_field(
-                name="\U0001f4b0 Money",
+                name="Money",
                 value=contents.money,
                 inline=True)
 
@@ -106,6 +106,7 @@ class Profile:
                     "money": 50,
                     "badges": [],
                     "inventory": [],
+                    "funpacks": [],
                     "features": []
                 }
                 r.table("profiles") \
@@ -195,27 +196,6 @@ class Profile:
     async def reset_alias(self, ctx):
         """Resets a user profile."""
         await ctx.invoke(self.profile.get_command("reset"))
-
-    @commands.command(aliases=['award'])
-    @permissions.moderator()
-    async def reward(self, ctx, user: discord.Member, name: str):
-        """Lets RPG MODs reward users with badges."""
-        try:
-            r.table('badges') \
-             .get_all(name, index='name') \
-             .run(self.conn) \
-             .next()
-        except r.ReqlCursorEmpty:
-            await ctx.send(
-                "<:rpgxmark:415322326930817027> Badge not found... :/")
-
-        r.table('profiles') \
-         .get_all(str(user.id), index='user') \
-         .update({'badges': r.row['badges'].append(name)}) \
-         .run(self.conn)
-        await ctx.send(
-            f"<:rpgcheckmark:415322326738010134>"
-            f"`{name}` added to **{user.display_name}**~")
 
 
 def setup(bot):
