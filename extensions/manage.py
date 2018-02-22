@@ -396,6 +396,20 @@ class Manage:
             f"`{value}` XP to **{user.display_name}**!"
         )
 
+    @commands.command()
+    @permissions.moderator()
+    async def level(self, ctx, user: discord.Member, value: int):
+        """Gives or removes levels from a user."""
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'level': r.row['level'] + value}) \
+         .run(self.conn)
+
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134> "
+            f"`{value}` level to **{user.display_name}**!"
+        )
+
 
 def setup(bot):
     """Adds to d.py bot. Necessary for all cogs."""
