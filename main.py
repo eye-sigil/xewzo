@@ -15,7 +15,7 @@ import sys
 import discord
 from discord.ext import commands
 from discord.ext.commands import errors as commands_errors
-from utils import permissions, roles
+from utils import permissions
 # INITIALIZE BOT #
 
 
@@ -121,12 +121,6 @@ async def on_command_error(ctx, error):
         await ctx.send(
             f"\u274C You must be a(n) {error}.",
             delete_after=3)
-
-    elif isinstance(error, roles.UnknownRole):
-        await ctx.send(
-            f"\u274C Role `{error}` not found.",
-            delete_after=3
-        )
 
     elif isinstance(error, commands_errors.CommandInvokeError):
         error = error.original

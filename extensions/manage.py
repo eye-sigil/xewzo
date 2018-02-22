@@ -384,9 +384,17 @@ class Manage:
 
     @commands.command()
     @permissions.moderator()
-    async def xp(self, user: discord.Member, value: int):
-        """Gives xp to a user."""
-        
+    async def xp(self, ctx, user: discord.Member, value: int):
+        """Gives or removes xp from a user."""
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'xp': r.row['xp'] + value}) \
+         .run(self.conn)
+
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134> "
+            f"`{value}` XP to **{user.display_name}**!"
+        )
 
 
 def setup(bot):

@@ -1,0 +1,9 @@
+- Make models for objects that need them, make stateful
+
+- Move more stuff into utils
+
+- Store
+
+- Levelling
+
+- Converters for models

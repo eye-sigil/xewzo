@@ -5,7 +5,7 @@ import rethinkdb as r
 import random
 
 
-class Profile:
+class Challenge:
 
     def __init__(self, bot):
         self.bot = bot
