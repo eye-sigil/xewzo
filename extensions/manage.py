@@ -143,8 +143,8 @@ class Manage:
             await ctx.send(self.add(contents, item.name, 'items'))
 
             # Funpack Commands
-    @commands.group(invoke_without_subcommand=True)
-    async def funpack(self, ctx):
+    @commands.group(name='funpack', invoke_without_subcommand=True)
+    async def funpack_cmd(self, ctx):
         """Provides info on and manages funpack."""
         ctx.invoke(self._funpackinfo)  # No arguments
 
