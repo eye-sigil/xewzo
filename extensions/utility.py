@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from utils import permissions, randomness
 import aiohttp
-import asyncio
 import subprocess
 import inspect
 import collections
@@ -11,11 +10,8 @@ import io
 import datetime
 import time
 from contextlib import redirect_stdout
-from lxml import etree
 import textwrap
 import rethinkdb as r
-from urllib.parse import quote as uriquote
-from typing import Union
 
 
 class Utility:
@@ -114,7 +110,9 @@ class Utility:
         while True:
             response = await self.bot.wait_for(
                 'message',
-                check=lambda m: m.content.startswith('`') and m.author == ctx.author and m.channel == ctx.channel)
+                check=lambda m: (
+                    m.content.startswith('`') and
+                    m.author == ctx.author and m.channel == ctx.channel))
 
             cleaned = self.cleanup_code(response.content)
             shell = self.repl_sessions[session]
@@ -516,18 +514,24 @@ class Utility:
                 bools = state in ['on', 'true']
 
         if bools:
-            prompt = await ctx.send('```Are you sure you want to do this? This will make the bot stop responding to anyone but you!\n\n[y]: Enter Maintenance mode\n[n]: Exit prompt```')
-            poll = await self.bot.wait_for('message', check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
+            prompt = await ctx.send(
+                "```Are you sure you want to do this? This will make the bot "
+                "stop responding to anyone but you!\n\n"
+                "[y]: Enter Maintenance mode\n[n]: Exit prompt```")
+            poll = await self.bot.wait_for(
+                'message', check=lambda m: (
+                    m.author == ctx.author and m.channel == ctx.channel))
             if poll.content == 'y':
                 await prompt.delete()
-                await self.bot.change_presence(status=discord.Status.dnd, game=None)
+                await self.bot.change_presence(
+                    status=discord.Status.dnd, game=None)
                 self.bot.maintenance = True
                 await ctx.send(':white_check_mark: Bot in maintenance mode.')
                 return
             else:
                 await prompt.delete()
                 await ctx.send('Prompt exited.')
-        elif bools == False:
+        elif not bools:
             self.bot.maintenance = False
             await self.bot.change_presence(game=discord.Game(
                 name=f'{self.bot.prefix[0]}help',
