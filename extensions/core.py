@@ -8,6 +8,7 @@ import sys
 import cpuinfo
 import math
 import psutil
+import traceback
 
 def propcheck(prop, d):
     return d[prop] if d[prop] else "None"
@@ -34,8 +35,8 @@ class Core:
                     self.bot.load_extension(f'extensions.{ext[:-3]}')
                     self.settings['extensions'].append(
                         f'extensions.{ext[:-3]}')
-                except:
-                    pass
+                except Exception as e:
+                    traceback.format_exc()
 
     def humanbytes(self, B) -> str:  # function lifted from StackOverflow
         'Return the given bytes as a human friendly KB, MB, GB, or TB string'
@@ -57,50 +58,20 @@ class Core:
         elif TB <= B:
             return '{0:.2f} TB'.format(B/TB)
 
-    @commands.command(aliases=['bot', 'source', 'code', 'github'])
-    async def about(self, ctx):
-        text = """
-```ini
-upmo is a private instance of Erio by ry00001.
-Our repo: https://github.com/unixporn/upmo-discord
-
-[ Tuxedo ]
-; An open-source moderation bot for Discord
-; Made by ry00001 in Python 3.6 using Discord.py
-; Source code freely available at https://github.com/ry00000/Erio
-[ Credits ]
-; HexadecimalPython: Original core
-; Liara: eval
-; Devoxin/Kromatic: Hosting and rewritten core, Lavalink.py that powers music!
-[ Special thanks ]
-; The people that made pull requests and contributed to the bot
-; The entirety of Discord Bots
-; LewisTehMinerz, for being awesome and hosting
-; Liara, for being awesome in general
-; Liz, for being a human rubber ducky for tempbans. (Rubber ducky debugging helps.)
-; Ged, for also being awesome and hosting
-; All my awesome users!
-```
-        """
-
-        await ctx.send(text)
-
     @commands.command(aliases=['addbot', 'connect', 'join'],
                       hidden=True)
     async def invite(self, ctx):
         text = """
-This bot is a private instance of Erio by ry00001.
-It cannot be added to other servers.
+This bot is cannot be added to other servers at this moment in time.
 
-Instead, add Erio to your server:
+It uses components of Erio by ry00001.
+If you need a moderation bot, add Erio to your server:
 <https://discordapp.com/oauth2/authorize?client_id=338695256759599117&scope=bot>
-
-It has most important features from upmo, including starboard and modlogs.
         """
 
         await ctx.send(text)
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def stats(self, ctx):
         mem = psutil.virtual_memory()
         currproc = psutil.Process(os.getpid())
@@ -181,7 +152,7 @@ Number of users: {len(ctx.bot.users)}
         await ctx.send("Shutting down...")
         await self.bot.logout()
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def ping(self, ctx):
         before = time.monotonic()
         pong = await ctx.send("...")

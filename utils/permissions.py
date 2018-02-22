@@ -1,4 +1,5 @@
 from discord.ext import commands
+import rethinkdb as r
 
 
 class WrongRole(commands.CommandError):
@@ -6,38 +7,26 @@ class WrongRole(commands.CommandError):
     pass
 
 
-async def is_owner_check(ctx):
+async def is_owner_check(ctx) -> bool:
     if str(ctx.author.id) in ctx.bot.config.get('OWNERS'):
         return True
     raise WrongRole(message="bot owner")
 
 
-async def is_moderator_check(ctx):
+async def is_moderator_check(ctx) -> bool:
     for role in ctx.author.roles:
         if str(role.id) in ctx.bot.config.get('MOD_ROLES'):
             return True
     raise WrongRole(message="moderator")
 
 
-async def is_helper_check(ctx):
-    for role in ctx.author.roles:
-        if (str(role.id) in ctx.bot.config.get('MOD_ROLES')) or (
-                str(role.id) in ctx.bot.config.get('HELPER_ROLES')):
-            return True
-    raise WrongRole(message="moderator or helper")
-
-
-def owner_id_check(bot, _id):
+def owner_id_check(bot, _id) -> bool:
     return str(_id) in bot.config.get('OWNERS')
 
 
-def owner():
+def owner() -> bool:
     return commands.check(is_owner_check)
 
 
-def moderator():
+def moderator() -> bool:
     return commands.check(is_moderator_check)
-
-
-def helper():
-    return commands.check(is_helper_check)

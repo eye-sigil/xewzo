@@ -8,7 +8,8 @@ import ast
 import math
 import random
 import re
-from utils import randomness, permissions
+import rethinkdb as r
+from utils import randomness, permissions, features
 
 
 def date(argument):
@@ -30,13 +31,14 @@ class Fun:
 
     def __init__(self, bot):
         self.bot = bot
+        self.conn = bot.conn
 
-    def dndint(self, no):
+    def dndint(self, no) -> int:
         if no == '':
             return 1
         return int(no)
 
-    def gensuffix(self, number):
+    def gensuffix(self, number) -> str:
         if number == 1:
             return "st"
         elif number == 2:
@@ -47,6 +49,7 @@ class Fun:
             return "th"
 
     @commands.command()
+    @features.feature()
     async def cat(self, ctx):
         async with ctx.channel.typing():
             async with aiohttp.ClientSession() as session:
@@ -60,6 +63,7 @@ class Fun:
 
     @commands.command()
     @commands.cooldown(10, 1, commands.BucketType.user)
+    @features.feature()
     async def animalfact(self, ctx, _type: str):
         async with ctx.channel.typing():
             sesh = aiohttp.ClientSession()
@@ -92,6 +96,7 @@ class Fun:
             sesh.close()
 
     @commands.command(description="Number suffixes are fun.")
+    @features.feature()
     async def numbermix(self, ctx):
         """ Number suffixes are fun. """
         numbers = ["fir", "seco", "thi",
@@ -123,6 +128,7 @@ class Fun:
         await ctx.send(f"```\nOutput: {finishedstr}\nCorrect: {correctstr}```")
 
     @commands.command(description='Set the bot\'s nick to something.')
+    @features.feature()
     async def bnick(self, ctx, *, nick: str=None):
         'Set the bot\'s nick to something.'
         if nick is None:
@@ -137,9 +143,8 @@ class Fun:
         await asyncio.sleep(30)
         await ctx.me.edit(nick=None)
 
-    @commands.command(
-        description='Roll a dice in DnD notation. (<sides>d<number of dice>)',
-        aliases=['dice'])
+    @commands.command(aliases=['dice'])
+    @features.feature()
     async def roll(self, ctx, dice: str):
         'Roll a dice in DnD notation. (<sides>d<number of dice>)'
         pat = re.match(r'(\d*)d(\d+)', dice)
@@ -164,6 +169,7 @@ class Fun:
         await ctx.send(f'`{res} (Total: {total})`')
 
     @commands.command()
+    @features.feature()
     async def ship(self, ctx,
                    member1: discord.Member,
                    member2: discord.Member):
@@ -174,6 +180,7 @@ class Fun:
             f'Your ship name is {f"{name1}{name2}" if random.random() >= 0.5 else f"{name2}{name1}"}')
 
     @commands.command(aliases=['eggtimer', 'えぐ'])  # egu
+    @features.feature()
     async def egg(self, ctx, time: int=180, emote: str='🥚⏲'):
         if time > 300 or time < 5:
             return await ctx.send(
@@ -185,6 +192,7 @@ class Fun:
         await m.edit(content=emote)
 
     @commands.command(pass_context=True)
+    @features.feature()
     async def nostalgia(self, ctx, date: date, *,
                         channel: discord.TextChannel=None):
         """Pins an old message from a specific date.

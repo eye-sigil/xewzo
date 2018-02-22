@@ -173,8 +173,7 @@ async def help(ctx, command: str=None):
     helptext = helptext[0]
     try:
         if command is None:
-            await ctx.author.send(helptext)
-            await ctx.message.add_reaction(u"\u2709")
+            await ctx.send(helptext)
         elif not cmd:
             await ctx.message.add_reaction(u"\u2753")
         else:

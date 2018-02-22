@@ -30,9 +30,8 @@ def get_settings(conn, g):
     return settings
 
 
-def add_money(conn, user: discord.User, amount: int=10) -> int:
+def edit_money(conn, user: discord.User, amount):
     cursor = r.table('profiles') \
-              .filter({'user': user.id}) \
+              .get_all(str(user.id), index='user') \
               .update({'money': r.row['money'] + amount}) \
               .run(conn)
-    return cursor.next()['money']

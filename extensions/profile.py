@@ -3,6 +3,7 @@ import discord
 import addict
 import rethinkdb as r
 import random
+from utils import permissions
 
 
 class Profile:
@@ -12,14 +13,14 @@ class Profile:
         self.conn = bot.conn
 
     @commands.group(invoke_without_command=True,
-                    aliases=['p', 'bio', 'account'])
+                    aliases=['p', 'account'])
     async def profile(self, ctx, user: discord.Member=None):
         """Group for profile"""
         if not user:
             user = ctx.author
         # Profile
         try:
-            profile = r \
+            contents = r \
                 .table('profiles') \
                 .get_all(str(user.id), index='user') \
                 .run(self.conn) \
@@ -29,47 +30,62 @@ class Profile:
                 f"<:rpgxmark:415322326930817027> **{user.display_name}** "
                 f"doesn't have a profile!")
             return
-        profile = addict.Dict(profile)
+        contents = addict.Dict(contents)
 
         async with ctx.channel.typing():
             # Message
-            content = (
-                f"**{user.display_name}** _Level {profile.level} "
-                f"(XP {profile.xp})_"
+            message = (
+                f"**{user.display_name}** _Level {contents.level} "
+                f"(XP {contents.xp})_"
             )
             embed = discord.Embed(
                 title=str(user),
-                description=f"_{profile.bio}_" if profile.bio
+                description=f"_{contents.bio}_" if contents.bio
                             else "_No bio set._",
                 color=user.color)
             embed.set_thumbnail(url=user.avatar_url)
+
+            badges = r \
+                .table('badges') \
+                .get_all(*contents.badges, index='name')\
+                .run(self.conn)
+
             embed.add_field(
                 name="Badges",
-                value=profile.badges if profile.badges
-                else "Nothin' but a dusty shelf...",
+                value="".join(item['emoji'] for item in badges)
+                if contents.badges else "Nothin' but a dusty shelf...",
                 inline=False)
             embed.add_field(
-                name="Money",
-                value=profile.money,
+                name="\U0001f4b0 Money",
+                value=contents.money,
                 inline=True)
+
+            inventory = r \
+                .table('items') \
+                .get_all(*contents.inventory, index='name')\
+                .run(self.conn)
             embed.add_field(
                 name="Inventory",
-                value=profile.inventory if profile.inventory
-                else "They've got nothin'!",
+                value="".join(f"<:{item['name']}:{item['emoji_id']}>"
+                              for item in inventory)
+                      if contents.inventory
+                      else "They've got nothin'!",
                 inline=True)
             embed.add_field(
                 name="Features",
-                value=profile.features if profile.features
+                value=contents.features if contents.features
                 else "They're a powerless peasant.",
                 inline=True)
             embed.set_footer(
-                text="React with section emoji to expand.")
+                text="React with section emoji to expand.",
+                icon_url="https://cdn.discordapp.com/emojis/415322326939467777.png")
 
-            await ctx.send(content, embed=embed)
+            await ctx.send(message, embed=embed)
 
-    @profile.command(aliases=['new', 'init', 'start', 'initialize', 'c'])
-    async def create(self, ctx, bio=None):
-        """Creates a profile for a user"""
+    @profile.command(name='create',
+                     aliases=['new', 'init', 'start', 'initialize', 'c'])
+    async def _create(self, ctx, bio=None):
+        """Creates a user profile."""
         exists = r \
             .table('profiles') \
             .get_all(str(ctx.author.id), index='user') \
@@ -82,7 +98,7 @@ class Profile:
                 delete_after=7)
         else:
             async with ctx.channel.typing():
-                profile = {
+                contents = {
                     "user": str(ctx.author.id),
                     "bio": bio,
                     "level": 1,
@@ -93,7 +109,7 @@ class Profile:
                     "features": []
                 }
                 r.table("profiles") \
-                 .insert(profile) \
+                 .insert(contents) \
                  .run(self.conn)
 
                 await ctx.send(
@@ -102,8 +118,8 @@ class Profile:
                     f"Profile created! View it with "
                     f"`{self.bot.prefix[0]}profile`.")
 
-    @profile.command()
-    async def reset(self, ctx):
+    @profile.command(name='reset')
+    async def _reset(self, ctx):
         """Resets a user profile."""
         passcode = ''.join(random.sample("0123456789", 4))
         await ctx.send(
@@ -140,13 +156,66 @@ class Profile:
         else:
             await ctx.send("<:rpgxmark:415322326930817027> Reset cancelled.")
 
+    @profile.command(name='bio', aliases=['b', 'tag', 'description'])
+    async def _bio(self, ctx, *content: str):
+        """Lets users set their bio"""
+        content = " ".join(content)
+
+        if not content:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027>"
+                f"**{ctx.author.display_name}**, I need a bio to set one "
+                f"for you **>:(**",
+                delete_after=7)
+            return
+        elif len(content) > 254:
+            await ctx.send(
+                f"<:rpgxmark:415322326930817027>"
+                f"**{ctx.author.display_name}**, bio too long  **;()**",
+                delete_after=7)
+        elif content == 'reset':
+            pass
+        else:
+            async with ctx.channel.typing():
+                r.table('profiles') \
+                 .get_all(str(ctx.author.id), index='user') \
+                 .update({'bio': content}) \
+                 .run(self.conn)
+                await ctx.send(
+                    f"<:rpgcheckmark:415322326738010134>"
+                    f"**{ctx.author.display_name}**, bio changed to "
+                    f"`{content}`.")
+
     @commands.command(name="create", aliases=["start"])
     async def create_alias(self, ctx, bio=None):
-        ctx.invoke(profile.get_command("create"), bio)
+        """Creates a user profile."""
+        await ctx.invoke(self.profile.get_command("create"), bio)
 
-    @commands.command(name="reset", aliases=["start"])
+    @commands.command(name="reset", aliases=["wipe"])
     async def reset_alias(self, ctx):
-        ctx.invoke(profile.get_command("create"))
+        """Resets a user profile."""
+        await ctx.invoke(self.profile.get_command("reset"))
+
+    @commands.command(aliases=['award'])
+    @permissions.moderator()
+    async def reward(self, ctx, user: discord.Member, name: str):
+        """Lets RPG MODs reward users with badges."""
+        try:
+            r.table('badges') \
+             .get_all(name, index='name') \
+             .run(self.conn) \
+             .next()
+        except r.ReqlCursorEmpty:
+            await ctx.send(
+                "<:rpgxmark:415322326930817027> Badge not found... :/")
+
+        r.table('profiles') \
+         .get_all(str(user.id), index='user') \
+         .update({'badges': r.row['badges'].append(name)}) \
+         .run(self.conn)
+        await ctx.send(
+            f"<:rpgcheckmark:415322326738010134>"
+            f"`{name}` added to **{user.display_name}**~")
 
 
 def setup(bot):
